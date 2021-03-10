@@ -1,13 +1,15 @@
 "use strict";
 const fs = require("fs");
-const round3dec = number => Math.round(number * 100) / 100;
 class MemoryTime {
 	#time;
+	#heapUsed;
+	#heapUsedGrowth = 0;
 	constructor() {
 		this.#time = process.hrtime();
 		this.rrs = [];
 		this.heapTotal = [];
 		this.heapUsed = [];
+		this.heapUsedGrowth = [];
 		this.external = [];
 		this.arrayBuffers = [];
 		this.time = [];
@@ -24,6 +26,13 @@ class MemoryTime {
 		this.rrs.push(rss);
 		this.heapTotal.push(heapTotal);
 		this.heapUsed.push(heapUsed);
+		if (heapUsed > this.#heapUsed) {
+			this.#heapUsedGrowth += (heapUsed - this.#heapUsed);
+			this.heapUsedGrowth.push(this.#heapUsedGrowth);
+		}
+		else
+			this.heapUsedGrowth.push("");
+		this.#heapUsed = heapUsed;
 		this.external.push(external);
 		this.arrayBuffers.push(arrayBuffers);
 	};
@@ -38,7 +47,7 @@ class MemoryTime {
 		);
 	};
 	[".csv"]() {
-		return `time\t${this.time.join("\t")}\nms\t${this.ms.join("\t")}\nrrs\t${this.rrs.join("\t")}\nheapTotal\t${this.heapTotal.join("\t")}\nheapUsed\t${this.heapUsed.join("\t")}\nexternal\t${this.external.join("\t")}\narrayBuffers\t${this.arrayBuffers.join("\t")}`;
+		return `time\t${this.time.join("\t")}\nms\t${this.ms.join("\t")}\nrrs\t${this.rrs.join("\t")}\nheapTotal\t${this.heapTotal.join("\t")}\nheapUsed\t${this.heapUsed.join("\t")}\nheapUsedGrowth\t${this.heapUsedGrowth.join("\t")}\nexternal\t${this.external.join("\t")}\narrayBuffers\t${this.arrayBuffers.join("\t")}`;
 	};
 };
 module.exports = MemoryTime;
