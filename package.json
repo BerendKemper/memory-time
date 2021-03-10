@@ -1,0 +1,21 @@
+{
+	"name": "memory-time",
+	"version": "1.0.0",
+	"description": "Measure the time and memory usage and export data",
+	"main": "index.js",
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/BerendKemper/memory-time.git"
+	},
+	"keywords": [],
+	"author": {
+		"name": "Berend Kemper",
+		"email": "berend_kemper@hotmail.com",
+		"npmjs": "https://www.npmjs.com/~burndkemper"
+	},
+	"license": "ISC",
+	"bugs": {
+		"url": "https://github.com/BerendKemper/memory-time/issues"
+	},
+	"homepage": "https://github.com/BerendKemper/memory-time#readme"
+}
