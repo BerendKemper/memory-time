@@ -1,53 +1,70 @@
 "use strict";
 const fs = require("fs");
+const path = require("path");
 class MemoryTime {
-	#time;
-	#heapUsed;
-	#heapUsedGrowth = 0;
-	constructor() {
-		this.#time = process.hrtime();
-		this.rrs = [];
-		this.heapTotal = [];
-		this.heapUsed = [];
-		this.heapUsedGrowth = [];
-		this.external = [];
-		this.arrayBuffers = [];
-		this.time = [];
-		this.ms = [];
-		this.msTotal = 0;
+	#filepath;
+	#mimetype;
+	#startTime;
+	constructor(filepath = "measurements.csv") {
+		this.#filepath = filepath;
+		const { dir, ext } = path.parse(filepath);
+		if (Object.getPrototypeOf(this).hasOwnProperty(ext))
+			this.#mimetype = ext;
+		else throw new TypeError(`${this.constructor.name} does not support mimetype "${ext}"`);
+		fs.mkdirSync(dir, { recursive: true });
+		const { rss, heapTotal, heapUsed, external, arrayBuffers } = process.memoryUsage();
+		this.#startTime = process.hrtime();
+		this.ix = 1
+		this.time = 0;
+		this.ms = 0;
+		this.rss = rss;
+		this.heapTotal = heapTotal;
+		this.heapUsed = heapUsed;
+		this.heapUsedGrowth = 0;
+		this.external = external;
+		this.arrayBuffers = arrayBuffers;
+		fs.writeFileSync(
+			filepath,
+			this[this.#mimetype](true)
+		);
 	};
 	measure() {
 		const { rss, heapTotal, heapUsed, external, arrayBuffers } = process.memoryUsage();
-		const [sec, nano] = process.hrtime(this.#time);
-		let start = this.msTotal;
-		this.msTotal = sec * 1e3 + nano / 1e6;
-		this.time.push(this.msTotal);
-		this.ms.push(this.msTotal - start);
-		this.rrs.push(rss);
-		this.heapTotal.push(heapTotal);
-		this.heapUsed.push(heapUsed);
-		if (heapUsed > this.#heapUsed) {
-			this.#heapUsedGrowth += (heapUsed - this.#heapUsed);
-			this.heapUsedGrowth.push(this.#heapUsedGrowth);
-		}
-		else
-			this.heapUsedGrowth.push("");
-		this.#heapUsed = heapUsed;
-		this.external.push(external);
-		this.arrayBuffers.push(arrayBuffers);
-	};
-	export({ filepath = "measurements", mimeType = ".csv" } = {}) {
-		if (!this[mimeType])
-			throw TypeError(`Export "${mimeType}" is not supported. Write a MemoryTime.prototype[mimeType] method to support a mimeType to your liking`);
-		const file = filepath + mimeType;
-		fs.writeFile(
-			file,
-			this[mimeType](),
-			() => console.log("memory exported to", file)
+		const [sec, nano] = process.hrtime(this.#startTime);
+		let start = this.time;
+		this.ix++;
+		this.time = sec * 1e3 + nano / 1e6;
+		this.ms = this.time - start;
+		this.rss = rss;
+		this.heapTotal = heapTotal;
+		if (heapUsed > this.heapUsed)
+			this.heapUsedGrowth += heapUsed - this.heapUsed;
+		this.heapUsed = heapUsed;
+		this.external = external;
+		this.arrayBuffers = arrayBuffers;
+		fs.appendFileSync(
+			this.#filepath,
+			this[this.#mimetype]()
 		);
 	};
-	[".csv"]() {
-		return `time\t${this.time.join("\t")}\nms\t${this.ms.join("\t")}\nrrs\t${this.rrs.join("\t")}\nheapTotal\t${this.heapTotal.join("\t")}\nheapUsed\t${this.heapUsed.join("\t")}\nheapUsedGrowth\t${this.heapUsedGrowth.join("\t")}\nexternal\t${this.external.join("\t")}\narrayBuffers\t${this.arrayBuffers.join("\t")}`;
+	[".csv"](withHeader) {
+		let tab;
+		let writeStr = "";
+		if (withHeader === true) {
+			tab = "";
+			for (const header in this) {
+				writeStr += tab + header;
+				tab = ",";
+			}
+			writeStr += "\n";
+		}
+		tab = "";
+		for (const header in this) {
+			writeStr += tab + this[header];
+			tab = ",";
+		}
+		writeStr += "\n";
+		return writeStr;
 	};
 };
 module.exports = MemoryTime;
