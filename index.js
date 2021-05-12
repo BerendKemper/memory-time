@@ -22,7 +22,9 @@ class MemoryTime {
 		this.heapUsed = heapUsed;
 		this.heapUsedGrowth = 0;
 		this.external = external;
+		this.externalGrowth = 0;
 		this.arrayBuffers = arrayBuffers;
+		this.arrayBuffersGrowth = 0;
 		fs.writeFileSync(
 			filepath,
 			this[this.#mimetype](true)
@@ -40,7 +42,11 @@ class MemoryTime {
 		if (heapUsed > this.heapUsed)
 			this.heapUsedGrowth += heapUsed - this.heapUsed;
 		this.heapUsed = heapUsed;
+		if (external > this.external)
+			this.externalGrowth += external - this.external;
 		this.external = external;
+		if (arrayBuffers > this.arrayBuffers)
+			this.arrayBuffersGrowth += arrayBuffers - this.arrayBuffers;
 		this.arrayBuffers = arrayBuffers;
 		fs.appendFileSync(
 			this.#filepath,
