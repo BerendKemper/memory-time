@@ -13,11 +13,11 @@ class MemoryTime {
         if (Object.getPrototypeOf(this).hasOwnProperty(ext)) this.#mimetype = ext;
         else throw new TypeError(`${this.constructor.name} does not support mimetype "${ext}"`);
         fs.mkdirSync(dir, { recursive: true });
-        Object.assign(this, process.memoryUsage());
         this.#startTime = process.hrtime();
         this.ix = 1
         this.time = 0;
         this.ms = 0;
+        Object.assign(this, process.memoryUsage());
         this.heapUsedGrowth = 0;
         this.externalGrowth = 0;
         this.arrayBuffersGrowth = 0;
