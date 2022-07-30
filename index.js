@@ -15,18 +15,22 @@ class MemoryTime {
         fs.mkdirSync(dir || "./", { recursive: true });
         this.#startTime = process.hrtime();
         this.ix = 1
-        this.time = 0;
+        let [sec, nano] = process.hrtime(this.#startTime);
+        this.time = sec * 1e3 + nano / 1e6;
         this.ms = 0;
         Object.assign(this, process.memoryUsage());
         this.heapUsedGrowth = 0;
         this.externalGrowth = 0;
         this.arrayBuffersGrowth = 0;
+        this.fsDelay = 0;
         fs.writeFileSync(filepath, this[this.#mimetype](true));
+        [sec, nano] = process.hrtime(this.#startTime);
+        this.fsDelay = -(this.time - (this.time = sec * 1e3 + nano / 1e6));
     };
     /**@returns {void}*/
     measure() {
         const { rss, heapTotal, heapUsed, external, arrayBuffers } = process.memoryUsage();
-        const [sec, nano] = process.hrtime(this.#startTime);
+        let [sec, nano] = process.hrtime(this.#startTime);
         let start = this.time;
         this.ix++;
         this.time = sec * 1e3 + nano / 1e6;
@@ -40,6 +44,8 @@ class MemoryTime {
         if (arrayBuffers > this.arrayBuffers) this.arrayBuffersGrowth += arrayBuffers - this.arrayBuffers;
         this.arrayBuffers = arrayBuffers;
         fs.appendFileSync(this.#filepath, this[this.#mimetype]());
+        [sec, nano] = process.hrtime(this.#startTime);
+        this.fsDelay = -(this.time - (this.time = sec * 1e3 + nano / 1e6));
     };
     /**@param {boolean} withHeader*/
     [".csv"](withHeader) {
