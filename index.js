@@ -12,7 +12,7 @@ class MemoryTime {
         const { dir, ext } = path.parse(filepath);
         if (Object.getPrototypeOf(this).hasOwnProperty(ext)) this.#mimetype = ext;
         else throw new TypeError(`${this.constructor.name} does not support mimetype "${ext}"`);
-        fs.mkdirSync(dir, { recursive: true });
+        fs.mkdirSync(dir || "./", { recursive: true });
         this.#startTime = process.hrtime();
         this.ix = 1
         this.time = 0;
@@ -48,4 +48,5 @@ class MemoryTime {
             : "") + Object.values(this).join(this.#separator) + "\n";
     };
 };
-module.exports = MemoryTime;
+Object.keys(new MemoryTime())
+// module.exports = MemoryTime;
