@@ -5,24 +5,21 @@ class MemoryTime {
     #filepath;
     #mimetype;
     #startTime;
-    constructor(filepath = "measurements.csv") {
+    #separator;
+    constructor(filepath = "measurements.csv", options = {}) {
+        this.#separator = typeof options?.separator === "string" ? options.separator : ",";
         this.#filepath = filepath;
         const { dir, ext } = path.parse(filepath);
         if (Object.getPrototypeOf(this).hasOwnProperty(ext)) this.#mimetype = ext;
         else throw new TypeError(`${this.constructor.name} does not support mimetype "${ext}"`);
         fs.mkdirSync(dir, { recursive: true });
-        const { rss, heapTotal, heapUsed, external, arrayBuffers } = process.memoryUsage();
+        Object.assign(this, process.memoryUsage());
         this.#startTime = process.hrtime();
         this.ix = 1
         this.time = 0;
         this.ms = 0;
-        this.rss = rss;
-        this.heapTotal = heapTotal;
-        this.heapUsed = heapUsed;
         this.heapUsedGrowth = 0;
-        this.external = external;
         this.externalGrowth = 0;
-        this.arrayBuffers = arrayBuffers;
         this.arrayBuffersGrowth = 0;
         fs.writeFileSync(filepath, this[this.#mimetype](true));
     };
@@ -46,23 +43,9 @@ class MemoryTime {
     };
     /**@param {boolean} withHeader*/
     [".csv"](withHeader) {
-        let tab;
-        let writeStr = "";
-        if (withHeader === true) {
-            tab = "";
-            for (const header in this) {
-                writeStr += tab + header;
-                tab = ",";
-            }
-            writeStr += "\n";
-        }
-        tab = "";
-        for (const header in this) {
-            writeStr += tab + this[header];
-            tab = ",";
-        }
-        writeStr += "\n";
-        return writeStr;
+        return (withHeader === true
+            ? Object.keys(this).join(this.#separator) + "\n"
+            : "") + Object.values(this).join(this.#separator) + "\n";
     };
 };
 module.exports = MemoryTime;
