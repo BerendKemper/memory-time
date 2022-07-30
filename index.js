@@ -48,5 +48,4 @@ class MemoryTime {
             : "") + Object.values(this).join(this.#separator) + "\n";
     };
 };
-Object.keys(new MemoryTime())
-// module.exports = MemoryTime;
+module.exports = MemoryTime;
